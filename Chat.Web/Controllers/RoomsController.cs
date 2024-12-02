@@ -16,25 +16,18 @@ namespace Chat.Web.Controllers
     [Authorize]
     [Route("api/[controller]")]
     [ApiController]
-    public class RoomsController : ControllerBase
+    public class RoomsController(ApplicationDbContext context,
+                           IMapper mapper,
+                           IHubContext<ChatHub> hubContext) : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
-        private readonly IMapper _mapper;
-        private readonly IHubContext<ChatHub> _hubContext;
-
-        public RoomsController(ApplicationDbContext context,
-            IMapper mapper,
-            IHubContext<ChatHub> hubContext)
-        {
-            _context = context;
-            _mapper = mapper;
-            _hubContext = hubContext;
-        }
+        private readonly ApplicationDbContext _context = context ?? throw new System.ArgumentNullException(nameof(context));
+        private readonly IMapper _mapper = mapper ?? throw new System.ArgumentNullException(nameof(mapper));
+        private readonly IHubContext<ChatHub> _hubContext = hubContext ?? throw new System.ArgumentNullException(nameof(hubContext));
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<RoomViewModel>>> Get()
         {
-            var rooms = await _context.Rooms
+            List<Room> rooms = await _context.Rooms
                 .Include(r => r.Admin)
                 .ToListAsync();
 
